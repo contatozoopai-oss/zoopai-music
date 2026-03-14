@@ -1,34 +1,30 @@
-import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
-);
-
-async function getArtists() {
-  const { data } = await supabase
-    .from("artists")
-    .select("*")
-    .order("name");
-
-  return data || [];
-}
+import { supabase } from "@/lib/supabase"
+import Link from "next/link"
 
 export default async function ArtistsPage() {
-  const artists = await getArtists();
+
+  const { data: artists, error } = await supabase
+    .from("artists")
+    .select("*")
+    .order("name", { ascending: true })
+
+  if (error) {
+    return <div>Erro ao carregar artistas</div>
+  }
 
   return (
-    <main style={{ padding: "40px", fontFamily: "Arial" }}>
+    <div style={{ padding: "40px" }}>
       <h1>Artistas</h1>
 
-      {artists.map((artist: any) => (
-        <div key={artist.id}>
-          <Link href={`/artists/${artist.slug}`}>
-            {artist.name}
-          </Link>
-        </div>
-      ))}
-    </main>
-  );
+      <ul>
+        {artists?.map((artist) => (
+          <li key={artist.id}>
+            <Link href={`/artists/${artist.slug}`}>
+              {artist.name}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
 }
